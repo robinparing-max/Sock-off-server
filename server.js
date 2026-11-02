@@ -65,6 +65,21 @@ const routes = {
     modes: Object.fromEntries(Object.entries(MODES).map(([n, c]) => [n, { colors: c, payout: +(RTP * n).toFixed(2) }])),
   }),
 
+  // DEMO ONLY: lets the bundled game page start a play-money session. Delete before going live.
+  'POST /api/demo-session': async (req, res) => {
+    const token = crypto.randomBytes(24).toString('hex');
+    sessions.set(token, { operator: 'demo', player_id: 'demo-' + token.slice(0, 8), currency: 'EUR', exp: Date.now() + 3600e3 });
+    send(res, 200, { token });
+  },
+
+  // Player browser -> provider: current balance from the operator wallet
+  'POST /api/balance': async (req, res, raw) => {
+    const s = sessions.get(JSON.parse(raw).token);
+    if (!s || s.exp < Date.now()) return send(res, 401, { error: 'invalid_session' });
+    try { send(res, 200, await wallet(OPERATORS[s.operator], '/balance', { player_id: s.player_id, currency: s.currency })); }
+    catch (e) { send(res, 502, { error: e.code }); }
+  },
+
   // Player browser -> provider: play one round
   'POST /api/play': async (req, res, raw) => {
     const { token, mode, pick, bet } = JSON.parse(raw);
@@ -86,7 +101,7 @@ const routes = {
     // 2) draw on the server, 3) credit win
     try {
       const result = colors[rngInt(colors.length)];
-      const win = result === pick ? Math.floor(bet * RTP * mode) : 0; // floor to whole cents
+      const win = result === pick ? Math.floor(bet * 97 * mode / 100) : 0; // integer math, floor to whole cents
       if (win > 0) bal = (await retry(() => wallet(op, '/win', { ...base, amount: win }))).balance;
       logRound({ ts: new Date().toISOString(), operator: s.operator, ...base, mode, pick, result, bet, win });
       send(res, 200, { round_id, result, win, balance: bal });
@@ -107,6 +122,9 @@ const routes = {
     const j = JSON.parse(raw); const b = (mockBal.get(j.player_id) ?? 100000) + j.amount;
     mockBal.set(j.player_id, b); send(res, 200, { balance: b });
   },
+  'POST /mock-operator/balance': async (req, res, raw) => {
+    const j = JSON.parse(raw); send(res, 200, { balance: mockBal.get(j.player_id) ?? 100000 });
+  },
   'POST /mock-operator/rollback': async (req, res, raw) => {
     const j = JSON.parse(raw); const b = (mockBal.get(j.player_id) ?? 100000) + j.amount;
     mockBal.set(j.player_id, b); send(res, 200, { balance: b });
@@ -116,6 +134,10 @@ const mockBal = new Map();
 
 http.createServer(async (req, res) => {
   if (req.method === 'OPTIONS') return send(res, 204, {});
+  if (req.method === 'GET' && (req.url === '/' || req.url.startsWith('/?'))) {
+    try { const html = fs.readFileSync(__dirname + '/index.html'); res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' }); return res.end(html); }
+    catch (_) { return send(res, 404, { error: 'index_html_missing' }); }
+  }
   const h = routes[`${req.method} ${req.url.split('?')[0]}`];
   if (!h) return send(res, 404, { error: 'not_found' });
   try { await h(req, res, await readBody(req)); }
