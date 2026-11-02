@@ -22,9 +22,9 @@ h1{font-size:22px;margin:0;font-weight:800;letter-spacing:-.01em}
 .stage video{object-position:80% 50%}
 .stage #res{opacity:0;transform-origin:55% 82%;transform:scale(1)}
 .stage #res.show{opacity:1;transform:scale(1.14);transition:transform 9s linear}
-.badge{position:absolute;left:25%;top:21%;max-width:32%;text-align:center;transform:translate(-50%,calc(-50% - 8px));padding:7px 14px;border-radius:99px;background:rgba(20,10,14,.82);
+.badge{position:absolute;left:22%;top:22%;max-width:42%;text-align:center;transform:translate(-50%,calc(-50% - 8px)) rotate(-30deg);padding:7px 14px;border-radius:99px;background:rgba(20,10,14,.82);
 font-weight:800;font-size:15px;line-height:1.25;opacity:0;transition:.4s;backdrop-filter:blur(6px)}
-.badge.on{opacity:1;transform:translate(-50%,-50%)}.badge.w{color:var(--win)}.badge.l{color:var(--lose)}
+.badge.on{opacity:1;transform:translate(-50%,-50%) rotate(-30deg)}.badge.w{color:var(--win)}.badge.l{color:var(--lose)}
 .hist{display:flex;gap:6px;min-height:18px;margin:10px 2px 4px;align-items:center;color:var(--mute);font-size:13px}
 .dot{width:16px;height:16px;border-radius:50%;border:2px solid var(--line)}
 section{margin-top:14px}
@@ -132,7 +132,7 @@ function play(){
   over=true;res.src=COLORS[j.result].img;res.className="show";var won=j.win>0;
   setTimeout(function(){
    st.bal=fm(j.balance/100);st.hist.push({r:j.result,w:won});st.busy=false;
-   say(COLORS[j.result].n,won?"w":"l");render();
+   say(COLORS[j.result].n+" \u00b7 "+(won?"+"+fm((j.win-Math.round(st.bet*100))/100):"\u2212"+st.bet),won?"w":"l");render();
   },1200);
  }
  function check(){if(over)return;if(failed)return fail(failed);if(vDone&&resp)reveal(resp)}
