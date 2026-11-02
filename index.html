@@ -104,7 +104,7 @@ function render(){
  var g=$("go");g.disabled=st.busy||!st.pick||!st.token||st.bal===null||st.bet<=0||st.bet>st.bal;
  g.textContent=!st.token?"Connecting...":st.busy?"Wait...":(!st.pick?"Pick a color":st.bet<=0?"Enter a bet":"Take the sock off \u00b7 "+st.bet.toFixed(2));
  $("hist").innerHTML=st.hist.length?"Last results":"";
- st.hist.slice(-10).forEach(function(h){var d=document.createElement("span");d.className="dot";d.style.background=COLORS[h.r].c;d.style.borderColor=h.w?"#7fd99a":"#ff8c82";d.title=COLORS[h.r].n;$("hist").appendChild(d)});
+ st.hist.slice(-10).forEach(function(h){var d=document.createElement("span");d.className="dot";d.style.background=COLORS[h.r].c;d.style.borderColor=h.w?"#2ecc5f":"#ff1f1f";d.title=COLORS[h.r].n;$("hist").appendChild(d)});
 }
 function reset(){
  badge.className="badge";res.style.transition="none";res.className="";void res.offsetWidth;res.style.transition="";
