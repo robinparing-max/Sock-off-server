@@ -6,7 +6,7 @@ const fs = require('fs');
 const PORT = process.env.PORT || 3000;
 const RTP = 0.97;
 const MODES = { 2: ['white', 'black'], 3: ['white', 'black', 'red'], 4: ['white', 'black', 'red', 'pink'] };
-const MIN_BET = 10, MAX_BET = 50000;            // in minor units (cents)
+const MIN_BET = 10, MAX_BET = 100000000;            // in minor units (cents)
 const CORS_ORIGIN = process.env.CORS_ORIGIN || '*'; // set to your game domain in production
 
 // Operators you sell to. Each gets its own secret and wallet URL.
