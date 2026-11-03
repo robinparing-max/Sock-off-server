@@ -57,6 +57,10 @@ button:focus-visible{outline:3px solid #fff;outline-offset:2px}
 .stage.sofia #res.show{transition:opacity .7s ease,transform 9s linear}
 .stage.sofia .badge{white-space:nowrap;max-width:none;left:75%;top:26%;transform:translate(-50%,calc(-50% - 8px)) rotate(40deg)}
 .stage.sofia .badge.on{transform:translate(-50%,-50%) rotate(40deg)}
+.stage.sakura #res{transform-origin:62% 85%;transform:scale(1.04)}
+.stage.sakura #res.show{transform:scale(1.14);transition:opacity 1s ease-in-out,transform 9s linear}
+.stage.sakura .badge{white-space:nowrap;max-width:none;left:73%;top:25%;transform:translate(-50%,calc(-50% - 8px)) rotate(45deg)}
+.stage.sakura .badge.on{transform:translate(-50%,-50%) rotate(45deg)}
 .girls{gap:12px}
 .girl{flex:1;padding:8px;border-radius:16px;border:2px solid var(--line);background:var(--panel);display:flex;flex-direction:column;gap:8px;align-items:center}
 .girl:hover,.girl:focus-visible{border-color:var(--lamp)}
@@ -158,19 +162,23 @@ function play(){
   refreshBal();
  }
  function reveal(j){
-  over=true;res.src=st.girl==="sofia"?SOF[j.result]:st.girl==="sakura"?SAK[j.result]:COLORS[j.result].img;res.className="show";var won=j.win>0;
+  over=true;res.src=st.girl==="sofia"?SOF[j.result]:st.girl==="sakura"?SAK[j.result]:COLORS[j.result].img;var won=j.win>0;
+  var showRes=function(){res.className="show"};
+  if(res.decode){res.decode().then(showRes,showRes)}else{showRes()}
   setTimeout(function(){
    st.bal=fm(j.balance/100);st.hist.push({r:j.result,w:won});st.busy=false;
    say(COLORS[j.result].n+" \u00b7 "+(won?"+"+fm((j.win-Math.round(st.bet*100))/100):"\u2212"+st.bet),won?"w":"l");render();
   },1200);
  }
- function check(){if(over)return;if(failed)return fail(failed);if(vDone&&resp)reveal(resp)}
+ var vNear=false;
+ function check(){if(over)return;if(failed)return fail(failed);if((vDone||vNear)&&resp)reveal(resp)}
  api("/api/play",{token:st.token,mode:st.mode,pick:st.pick,bet:Math.min(Math.round(st.bet*100),Math.round(st.bal*100+st.bet*100))})
   .then(function(j){resp=j;check()}).catch(function(e){failed=e;check()});
   {
    var started=false,tries=0;
    vid.playbackRate=1.5;
    vid.onended=function(){vDone=true;check()};
+   vid.ontimeupdate=function(){if(st.girl==="sakura"&&vid.duration&&vid.currentTime>=vid.duration-0.8&&!vNear){vNear=true;check()}};
    vid.onerror=function(){setTimeout(function(){vDone=true;check()},1500)};
    function start(){
     if(started||over)return;started=true;
@@ -210,7 +218,7 @@ function loadVid(g){
  .catch(function(){vid.src=VID[g].src;try{vid.load()}catch(e){}});
 }
 function setGirl(g){
- st.girl=g;loadVid(g);$("stage").classList.toggle("sofia",g==="sofia");
+ st.girl=g;loadVid(g);$("stage").classList.toggle("sofia",g==="sofia");$("stage").classList.toggle("sakura",g==="sakura");
  $("who").textContent={emma:"Emma",sofia:"Sofia",sakura:"Sakura"}[g];
  $("pickGirl").hidden=true;$("game").hidden=false;render();
 }
